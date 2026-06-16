@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจองที่นอนค่ายอาสา - มหาวิทยาลัยช่อแก้ว</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <header class="navbar">
+        <h1>ศูนย์ประชุม มหาวิทยาลัยช่อแก้ว</h1>
+        <p>ระบบจองที่นอนค่ายอาสา ประจำปี 2569</p>
+    </header>
+
+    <main class="container">
+        <div class="legend">
+            <div class="legend-item"><span class="box available-m"></span> ว่าง (ชาย)</div>
+            <div class="legend-item"><span class="box available-f"></span> ว่าง (หญิง)</div>
+            <div class="legend-item"><span class="box booked"></span> จองแล้ว</div>
+        </div>
+
+        <div class="hall-layout">
+            <div class="door door-top">ประตูหน้า</div>
+            
+            <div class="floor-plan">
+                <div class="door door-left">ประตูซ้าย</div>
+                
+                <div class="zone zone-male">
+                    <h2>โซนชาย (230 ที่)</h2>
+                    <div id="male-seats" class="seat-grid male-grid"></div>
+                </div>
+
+                <div class="divider">
+                    <span>ทางเดินกั้นโซน(มีผ้าม่านกั้นไว้)</span>
+                </div>
+
+                <div class="zone zone-female">
+                    <h2>โซนหญิง (160 ที่)</h2>
+                    <div id="female-seats" class="seat-grid female-grid"></div>
+                </div>
+                
+                <div class="door door-right">ประตูขวา</div>
+            </div>
+
+            <div class="door door-bottom">ประตูหลัง</div>
+        </div>
+    </main>
+
+    <!-- Modal กรอกข้อมูลจอง -->
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">ยืนยันการจองที่นอน</h3>
+            <p id="selected-seat-label" class="seat-label"></p>
+            <form id="booking-form">
+                <input type="hidden" id="seat-id">
+                <div class="form-group">
+                    <label>ชื่อ-นามสกุล</label>
+                    <input type="text" id="fullname" required placeholder="เช่น นายสมชาย ใจดี">
+                </div>
+                <div class="form-group">
+                    <label>ชื่อเล่น</label>
+                    <input type="text" id="nickname" required>
+                </div>
+                <div class="form-group">
+                    <label>คณะ</label>
+                    <input type="text" id="faculty" required>
+                </div>
+                <div class="form-group">
+                    <label>ชั้นปี</label>
+                    <select id="year" required>
+                        <option value="">เลือกชั้นปี</option>
+                        <option value="1">ปี 1</option>
+                        <option value="2">ปี 2</option>
+                        <option value="3">ปี 3</option>
+                        <option value="4">ปี 4+</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>สังกัดมหาวิทยาลัย/label>
+                    <input type="text" id="department" required>
+                </div>
+                <div class="form-group">
+                    <label>Account Mixi2</label>
+                    <input type="text" id="mixi2" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal()">ยกเลิก</button>
+                    <button type="submit" class="btn btn-confirm">ยืนยันการจอง (ไม่สามารถยกเลิกได้)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal ดูข้อมูลคนจอง -->
+    <div id="info-modal" class="modal">
+        <div class="modal-content info-card">
+            <h3>ข้อมูลผู้จองที่นอน <span id="info-seat-id"></span></h3>
+            <div class="info-details">
+                <p><strong>ชื่อ-นามสกุล:</strong> <span id="info-fullname"></span></p>
+                <p><strong>ชื่อเล่น:</strong> <span id="info-nickname"></span></p>
+                <p><strong>คณะ:</strong> <span id="info-faculty"></span> ชั้นปี <span id="info-year"></span></p>
+                <p><strong>สังกัด:</strong> <span id="info-department"></span></p>
+                <p><strong>Mixi2:</strong> <span id="info-mixi2"></span></p>
+            </div>
+            <button class="btn btn-cancel full-width" onclick="closeInfoModal()">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
