@@ -11,9 +11,6 @@ const firebaseConfig1 = {
   measurementId: "G-9C7JQ40FNX"
 };
 
-// ==========================================
-// 2. ตั้งค่า Firebase Project ตัวใหม่ (สำรอง - รอคุณนำมาใส่)
-// ==========================================
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyA20Aj2VFtKOMrXiePERGM_rHWLDZIuYWU",
