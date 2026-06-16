@@ -1,7 +1,5 @@
-// ==========================================
-// 1. ตั้งค่า Firebase Project ตัวเก่า (ตัวหลัก - ข้อมูลเดิมของคุณ)
-// ==========================================
-const firebaseConfig1 = {
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
   apiKey: "AIzaSyB2S_qsAQkFiI-v8cnQ9eAjV0r0Ttz_jtg",
   authDomain: "camp-booking-5b648.firebaseapp.com",
   projectId: "camp-booking-5b648",
@@ -11,26 +9,11 @@ const firebaseConfig1 = {
   measurementId: "G-9C7JQ40FNX"
 };
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyA20Aj2VFtKOMrXiePERGM_rHWLDZIuYWU",
-  authDomain: "camp-booking-system-e46de.firebaseapp.com",
-  projectId: "camp-booking-system-e46de",
-  storageBucket: "camp-booking-system-e46de.firebasestorage.app",
-  messagingSenderId: "984095824618",
-  appId: "1:984095824618:web:a24a4fb1a0c394b1b45593",
-  measurementId: "G-WXH9R1TRKN"
-};
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-// Initialize Firebase (ตัวเก่า)
-firebase.initializeApp(firebaseConfig1);
-const db1 = firebase.firestore();
-
-// Initialize Firebase (ตัวใหม่)
-const app2 = firebase.initializeApp(firebaseConfig2, "Secondary");
-const db2 = app2.firestore();
-
-// ตัวแปรเก็บสถานะที่นั่ง (เก็บรวมข้อมูลจากทั้ง 2 DB)
+// ตัวแปรเก็บสถานะที่นั่ง
 let bookings = {};
 
 // สร้างจุดจองที่นอน
@@ -61,9 +44,9 @@ function generateSeats() {
     }
 }
 
-// โหลดข้อมูลแบบ Real-time (ดึงจากทั้ง 2 ฐานข้อมูล)
+// โหลดข้อมูลแบบ Real-time
 function listenToBookings() {
-    const processSnapshot = (snapshot) => {
+    db.collection("bookings").onSnapshot((snapshot) => {
         snapshot.docChanges().forEach((change) => {
             const data = change.doc.data();
             const seatId = change.doc.id;
@@ -77,16 +60,6 @@ function listenToBookings() {
                 }
             }
         });
-    };
-
-    // ดึงจากฐานข้อมูลเก่า
-    db1.collection("bookings").onSnapshot(processSnapshot, (error) => {
-        console.warn("แจ้งเตือนจาก DB เก่า:", error);
-    });
-
-    // ดึงจากฐานข้อมูลใหม่
-    db2.collection("bookings").onSnapshot(processSnapshot, (error) => {
-        console.error("แจ้งเตือนจาก DB ใหม่:", error);
     });
 }
 
@@ -112,16 +85,11 @@ document.getElementById('booking-form').addEventListener('submit', async (e) => 
     btnConfirm.innerText = "กำลังประมวลผล...";
     btnConfirm.disabled = true;
 
-    // ชี้ไปที่ db2 (ฐานข้อมูลใหม่) เพื่อทำการบันทึกข้อมูลใหม่ทั้งหมด
-    const seatRef = db2.collection("bookings").doc(seatId);
+    // ตรวจสอบขั้นสุดท้ายว่ามีคนจองตัดหน้าหรือไม่ (Transaction)
+    const seatRef = db.collection("bookings").doc(seatId);
     
     try {
-        // ตรวจสอบขั้นสุดท้าย ป้องกันคนจองซ้ำ
-        if (bookings[seatId]) {
-            throw "ขออภัย จุดนี้เพิ่งถูกจองไปเมื่อสักครู่ โปรดเลือกจุดอื่น";
-        }
-
-        await db2.runTransaction(async (transaction) => {
+        await db.runTransaction(async (transaction) => {
             const seatDoc = await transaction.get(seatRef);
             if (seatDoc.exists) {
                 throw "ขออภัย จุดนี้เพิ่งถูกจองไปเมื่อสักครู่ โปรดเลือกจุดอื่น";
@@ -160,12 +128,12 @@ function closeModal() {
 function showInfoModal(seatId) {
     const data = bookings[seatId];
     document.getElementById('info-seat-id').innerText = seatId;
-    document.getElementById('info-fullname').innerText = data.fullname || '-';
-    document.getElementById('info-nickname').innerText = data.nickname || '-';
-    document.getElementById('info-faculty').innerText = data.faculty || '-';
-    document.getElementById('info-year').innerText = data.year || '-';
-    document.getElementById('info-department').innerText = data.department || '-';
-    document.getElementById('info-mixi2').innerText = data.mixi2 || '-';
+    document.getElementById('info-fullname').innerText = data.fullname;
+    document.getElementById('info-nickname').innerText = data.nickname;
+    document.getElementById('info-faculty').innerText = data.faculty;
+    document.getElementById('info-year').innerText = data.year;
+    document.getElementById('info-department').innerText = data.department;
+    document.getElementById('info-mixi2').innerText = data.mixi2;
     
     document.getElementById('info-modal').style.display = 'flex';
 }
@@ -179,3 +147,5 @@ window.onload = () => {
     generateSeats();
     listenToBookings();
 };
+
+(ฉันอยากใส่ api ไปเพิ่มอีกสักตัวเพราะความจำอันเก่าเต็ม สามารถเขียนโค้ดเพิ่มได้ไหม ช่วยแก้ไขเพิ่มเติมให้ที และยังคงโค้ดเดิม)
