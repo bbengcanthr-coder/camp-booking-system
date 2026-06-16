@@ -165,8 +165,6 @@ body {
 
 .seat.male { background-color: var(--male-color); }
 .seat.female { background-color: var(--female-color); }
-
-/* แก้ไข UX ส่วนที่นอนที่ถูกจองแล้ว ให้รู้ว่าคลิกดูข้อมูลได้ */
 .seat.booked { background-color: var(--booked-color); cursor: pointer; }
 .seat.booked:hover { transform: scale(1.05); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
@@ -197,7 +195,6 @@ body {
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* เพิ่มการตกแต่งให้ตัวหนังสือบอกตำแหน่งที่นั่งตอนจอง */
 .seat-label {
     color: var(--primary);
     font-weight: 600;
