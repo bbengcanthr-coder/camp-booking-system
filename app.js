@@ -1,4 +1,6 @@
-// 1. คอนฟิกของ Firebase ตัวแรก (ตัวเก่าที่โควต้าเต็ม)
+// ==========================================
+// 1. ตั้งค่า Firebase Project ตัวเก่า (ตัวหลัก)
+// ==========================================
 const firebaseConfig1 = {
   apiKey: "AIzaSyB2S_qsAQkFiI-v8cnQ9eAjV0r0Ttz_jtg",
   authDomain: "camp-booking-5b648.firebaseapp.com",
@@ -9,6 +11,9 @@ const firebaseConfig1 = {
   measurementId: "G-9C7JQ40FNX"
 };
 
+// ==========================================
+// 2. ตั้งค่า Firebase Project ตัวใหม่ (สำรอง)
+// ==========================================
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyA20Aj2VFtKOMrXiePERGM_rHWLDZIuYWU",
@@ -20,15 +25,15 @@ const firebaseConfig = {
   measurementId: "G-WXH9R1TRKN"
 };
 
-// Initialize Firebase ตัวแรก (Default App) สำหรับอ่านข้อมูลเก่า
+// Initialize Firebase (ตัวเก่า)
 firebase.initializeApp(firebaseConfig1);
 const db1 = firebase.firestore();
 
-// Initialize Firebase ตัวที่สอง (ตั้งชื่อแอปว่า "SecondaryApp") สำหรับเซฟข้อมูลใหม่
-const app2 = firebase.initializeApp(firebaseConfig2, "SecondaryApp");
+// Initialize Firebase (ตัวใหม่) - ต้องใส่ชื่อ App เป็น Parameter ที่สอง เช่น "Secondary"
+const app2 = firebase.initializeApp(firebaseConfig2, "Secondary");
 const db2 = app2.firestore();
 
-// ตัวแปรเก็บสถานะที่นั่ง (รวมข้อมูลจากทั้ง 2 ฐานข้อมูล)
+// ตัวแปรเก็บสถานะที่นั่ง (เก็บรวมข้อมูลจากทั้ง 2 DB)
 let bookings = {};
 
 // สร้างจุดจองที่นอน
@@ -59,45 +64,40 @@ function generateSeats() {
     }
 }
 
-// โหลดข้อมูลแบบ Real-time จากทั้ง 2 ฐานข้อมูล
+// โหลดข้อมูลแบบ Real-time (ดึงจากทั้ง 2 ฐานข้อมูล)
 function listenToBookings() {
-    // ดึงข้อมูลจากฐานข้อมูลเก่า (db1) 
-    // *ใส่ catch error ไว้ เผื่อโควต้าฝั่งอ่านของตัวเก่าเต็ม ระบบจะได้ไม่พัง
-    db1.collection("bookings").onSnapshot((snapshot) => {
-        updateSeatsUI(snapshot);
-    }, (error) => {
-        console.warn("DB1 Error (โควต้าตัวเก่าอาจจะเต็ม):", error);
-    });
-
-    // ดึงข้อมูลจากฐานข้อมูลใหม่ (db2)
-    db2.collection("bookings").onSnapshot((snapshot) => {
-        updateSeatsUI(snapshot);
-    }, (error) => {
-        console.error("DB2 Error:", error);
-    });
-}
-
-// ฟังก์ชันแยกสำหรับอัปเดตหน้าจอ (เพื่อให้โค้ดไม่ซ้ำซ้อน)
-function updateSeatsUI(snapshot) {
-    snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data();
-        const seatId = change.doc.id;
-        const seatElement = document.getElementById(seatId);
-        
-        if (change.type === "added" || change.type === "modified") {
-            bookings[seatId] = data; // เก็บลงตัวแปรกลาง
-            if (seatElement) {
-                seatElement.classList.remove('male', 'female');
-                seatElement.classList.add('booked');
+    // สร้างฟังก์ชันจัดการข้อมูลซ้ำเพื่อไม่ให้โค้ดยาวเกินไป
+    const processSnapshot = (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            const data = change.doc.data();
+            const seatId = change.doc.id;
+            const seatElement = document.getElementById(seatId);
+            
+            if (change.type === "added" || change.type === "modified") {
+                bookings[seatId] = data;
+                if (seatElement) {
+                    seatElement.classList.remove('male', 'female');
+                    seatElement.classList.add('booked');
+                }
             }
-        }
+        });
+    };
+
+    // ดึงจากฐานข้อมูลเก่า
+    db1.collection("bookings").onSnapshot(processSnapshot, (error) => {
+        console.warn("แจ้งเตือนจาก DB เก่า (อาจจะโควตาเต็ม):", error);
+    });
+
+    // ดึงจากฐานข้อมูลใหม่
+    db2.collection("bookings").onSnapshot(processSnapshot, (error) => {
+        console.error("แจ้งเตือนจาก DB ใหม่:", error);
     });
 }
 
 // จัดการเมื่อคลิกที่นอน
 function handleSeatClick(seatId, zoneName) {
     if (bookings[seatId]) {
-        // ถ้าถูกจองแล้ว (ไม่ว่าจะจาก db1 หรือ db2) ให้เปิด Modal แสดงข้อมูล
+        // ถ้าถูกจองแล้ว (ไม่ว่าจะจาก DB เก่าหรือใหม่) ให้เปิด Modal แสดงข้อมูล
         showInfoModal(seatId);
     } else {
         // ถ้ายังว่าง ให้เปิด Modal กรอกข้อมูล
@@ -107,7 +107,7 @@ function handleSeatClick(seatId, zoneName) {
     }
 }
 
-// บันทึกการจองลง Firebase (ย้ายไปเซฟลงโปรเจกต์ใหม่ db2)
+// บันทึกการจองลง Firebase
 document.getElementById('booking-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -116,20 +116,18 @@ document.getElementById('booking-form').addEventListener('submit', async (e) => 
     btnConfirm.innerText = "กำลังประมวลผล...";
     btnConfirm.disabled = true;
 
-    // 1. เช็กซ้ำอีกรอบจากตัวแปร bookings เผื่อมีคนจองไปใน db1
-    if (bookings[seatId]) {
-        alert("ขออภัย จุดนี้ถูกจองไปแล้ว โปรดเลือกจุดอื่น");
-        btnConfirm.innerText = "ยืนยันการจอง (ไม่สามารถยกเลิกได้)";
-        btnConfirm.disabled = false;
-        return;
-    }
-
-    // 2. เตรียมข้อมูลบันทึกลงฐานข้อมูลใหม่ (db2)
+    // *** จุดสำคัญ: เราจะชี้ไปที่ db2 (ฐานข้อมูลใหม่) เพื่อทำการบันทึกข้อมูลใหม่ทั้งหมด ***
     const seatRef = db2.collection("bookings").doc(seatId);
     
     try {
+        // Double-check ระดับ Frontend เพื่อป้องกันคนจองซ้ำกับ DB เก่า
+        if (bookings[seatId]) {
+            throw "ขออภัย จุดนี้เพิ่งถูกจองไปเมื่อสักครู่ โปรดเลือกจุดอื่น";
+        }
+
         await db2.runTransaction(async (transaction) => {
             const seatDoc = await transaction.get(seatRef);
+            // Check ระดับ Backend (เฉพาะ DB ใหม่)
             if (seatDoc.exists) {
                 throw "ขออภัย จุดนี้เพิ่งถูกจองไปเมื่อสักครู่ โปรดเลือกจุดอื่น";
             }
@@ -159,7 +157,7 @@ document.getElementById('booking-form').addEventListener('submit', async (e) => 
     }
 });
 
-// ฟังก์ชัน Modal คงเดิม
+// ฟังก์ชัน Modal
 function closeModal() {
     document.getElementById('booking-modal').style.display = 'none';
 }
@@ -167,12 +165,12 @@ function closeModal() {
 function showInfoModal(seatId) {
     const data = bookings[seatId];
     document.getElementById('info-seat-id').innerText = seatId;
-    document.getElementById('info-fullname').innerText = data.fullname;
-    document.getElementById('info-nickname').innerText = data.nickname;
-    document.getElementById('info-faculty').innerText = data.faculty;
-    document.getElementById('info-year').innerText = data.year;
-    document.getElementById('info-department').innerText = data.department;
-    document.getElementById('info-mixi2').innerText = data.mixi2;
+    document.getElementById('info-fullname').innerText = data.fullname || '-';
+    document.getElementById('info-nickname').innerText = data.nickname || '-';
+    document.getElementById('info-faculty').innerText = data.faculty || '-';
+    document.getElementById('info-year').innerText = data.year || '-';
+    document.getElementById('info-department').innerText = data.department || '-';
+    document.getElementById('info-mixi2').innerText = data.mixi2 || '-';
     
     document.getElementById('info-modal').style.display = 'flex';
 }
