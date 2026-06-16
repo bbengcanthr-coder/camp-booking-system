@@ -1,5 +1,5 @@
 // ==========================================
-// 1. ตั้งค่า Firebase Project ตัวเก่า (ตัวหลัก)
+// 1. ตั้งค่า Firebase Project ตัวเก่า (ตัวหลัก - ข้อมูลเดิมของคุณ)
 // ==========================================
 const firebaseConfig1 = {
   apiKey: "AIzaSyB2S_qsAQkFiI-v8cnQ9eAjV0r0Ttz_jtg",
@@ -12,7 +12,7 @@ const firebaseConfig1 = {
 };
 
 // ==========================================
-// 2. ตั้งค่า Firebase Project ตัวใหม่ (สำรอง)
+// 2. ตั้งค่า Firebase Project ตัวใหม่ (สำรอง - รอคุณนำมาใส่)
 // ==========================================
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -29,7 +29,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig1);
 const db1 = firebase.firestore();
 
-// Initialize Firebase (ตัวใหม่) - ต้องใส่ชื่อ App เป็น Parameter ที่สอง เช่น "Secondary"
+// Initialize Firebase (ตัวใหม่)
 const app2 = firebase.initializeApp(firebaseConfig2, "Secondary");
 const db2 = app2.firestore();
 
@@ -66,7 +66,6 @@ function generateSeats() {
 
 // โหลดข้อมูลแบบ Real-time (ดึงจากทั้ง 2 ฐานข้อมูล)
 function listenToBookings() {
-    // สร้างฟังก์ชันจัดการข้อมูลซ้ำเพื่อไม่ให้โค้ดยาวเกินไป
     const processSnapshot = (snapshot) => {
         snapshot.docChanges().forEach((change) => {
             const data = change.doc.data();
@@ -85,7 +84,7 @@ function listenToBookings() {
 
     // ดึงจากฐานข้อมูลเก่า
     db1.collection("bookings").onSnapshot(processSnapshot, (error) => {
-        console.warn("แจ้งเตือนจาก DB เก่า (อาจจะโควตาเต็ม):", error);
+        console.warn("แจ้งเตือนจาก DB เก่า:", error);
     });
 
     // ดึงจากฐานข้อมูลใหม่
@@ -97,7 +96,7 @@ function listenToBookings() {
 // จัดการเมื่อคลิกที่นอน
 function handleSeatClick(seatId, zoneName) {
     if (bookings[seatId]) {
-        // ถ้าถูกจองแล้ว (ไม่ว่าจะจาก DB เก่าหรือใหม่) ให้เปิด Modal แสดงข้อมูล
+        // ถ้าถูกจองแล้ว ให้เปิด Modal แสดงข้อมูล
         showInfoModal(seatId);
     } else {
         // ถ้ายังว่าง ให้เปิด Modal กรอกข้อมูล
@@ -116,18 +115,17 @@ document.getElementById('booking-form').addEventListener('submit', async (e) => 
     btnConfirm.innerText = "กำลังประมวลผล...";
     btnConfirm.disabled = true;
 
-    // *** จุดสำคัญ: เราจะชี้ไปที่ db2 (ฐานข้อมูลใหม่) เพื่อทำการบันทึกข้อมูลใหม่ทั้งหมด ***
+    // ชี้ไปที่ db2 (ฐานข้อมูลใหม่) เพื่อทำการบันทึกข้อมูลใหม่ทั้งหมด
     const seatRef = db2.collection("bookings").doc(seatId);
     
     try {
-        // Double-check ระดับ Frontend เพื่อป้องกันคนจองซ้ำกับ DB เก่า
+        // ตรวจสอบขั้นสุดท้าย ป้องกันคนจองซ้ำ
         if (bookings[seatId]) {
             throw "ขออภัย จุดนี้เพิ่งถูกจองไปเมื่อสักครู่ โปรดเลือกจุดอื่น";
         }
 
         await db2.runTransaction(async (transaction) => {
             const seatDoc = await transaction.get(seatRef);
-            // Check ระดับ Backend (เฉพาะ DB ใหม่)
             if (seatDoc.exists) {
                 throw "ขออภัย จุดนี้เพิ่งถูกจองไปเมื่อสักครู่ โปรดเลือกจุดอื่น";
             }
