@@ -165,8 +165,10 @@ body {
 
 .seat.male { background-color: var(--male-color); }
 .seat.female { background-color: var(--female-color); }
-.seat.booked { background-color: var(--booked-color); cursor: not-allowed; }
-.seat.booked:hover { transform: none; box-shadow: none; }
+
+/* แก้ไข UX ส่วนที่นอนที่ถูกจองแล้ว ให้รู้ว่าคลิกดูข้อมูลได้ */
+.seat.booked { background-color: var(--booked-color); cursor: pointer; }
+.seat.booked:hover { transform: scale(1.05); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
 /* Modals */
 .modal {
@@ -193,6 +195,18 @@ body {
 @keyframes slideUp {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+}
+
+/* เพิ่มการตกแต่งให้ตัวหนังสือบอกตำแหน่งที่นั่งตอนจอง */
+.seat-label {
+    color: var(--primary);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    background-color: #f0f9ff;
+    padding: 10px;
+    border-radius: 6px;
 }
 
 .form-group { margin-bottom: 15px; }
