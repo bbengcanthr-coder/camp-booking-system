@@ -6,7 +6,6 @@
     <title>ระบบจองที่นอนค่ายอาสา - มหาวิทยาลัยช่อแก้ว</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
@@ -50,7 +49,6 @@
         </div>
     </main>
 
-    <!-- Modal กรอกข้อมูลจอง -->
     <div id="booking-modal" class="modal">
         <div class="modal-content">
             <h3 id="modal-title">ยืนยันการจองที่นอน</h3>
@@ -80,7 +78,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>สังกัดมหาวิทยาลัย/label>
+                    <label>สังกัดมหาวิทยาลัย</label>
                     <input type="text" id="department" required>
                 </div>
                 <div class="form-group">
@@ -95,7 +93,6 @@
         </div>
     </div>
 
-    <!-- Modal ดูข้อมูลคนจอง -->
     <div id="info-modal" class="modal">
         <div class="modal-content info-card">
             <h3>ข้อมูลผู้จองที่นอน <span id="info-seat-id"></span></h3>
